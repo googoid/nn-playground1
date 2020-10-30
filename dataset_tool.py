@@ -2,14 +2,10 @@ import numpy as np
 import cv2
 import time
 import sys
-import tensorflow as tf
-from tensorflow.keras.applications.vgg19 import VGG19
 import os
 
-model = VGG19(include_top=False)
-
 cap = cv2.VideoCapture('DJI_0037.MP4')
-fps = cap.get(cv2.CAP_PROP_FPS)
+fps = 240  # cap.get(cv2.CAP_PROP_FPS)
 
 paused = False
 prevFrame = None
@@ -46,8 +42,7 @@ def mouse_callback(event, x, y, flags, param):
         if roiY + roiSize > overlayFrame.shape[0]:
             roiY = overlayFrame.shape[0] - roiSize
     elif event == cv2.EVENT_LBUTTONDOWN:
-        cropped = prevFrame[roiY: roiY +
-                            roiSize, roiX: roiX + roiSize]
+        cropped = prevFrame[roiY: roiY + roiSize, roiX: roiX + roiSize]
         cv2.imwrite('data/train/car/' + str(idx).zfill(5) + '.jpg', cropped)
         idx += 1
         paused = False
@@ -62,25 +57,13 @@ while cap.isOpened():
         now = time.time()
 
         ret, frame = cap.read()
-
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        rescaled = cv2.resize(frame, (720, 480))
+        prevFrame = frame
 
         timeDiff = time.time() - now
         if timeDiff < 1.0/(fps):
             time.sleep(1.0/(fps) - timeDiff)
 
-        # processed = tf.keras.applications.xception.preprocess_input(rescaled)
-
-        # pred = model.predict(np.array([processed]))
-
-        # stack = np.hstack((rescaled, None))
-        # stack = np.hstack(
-        #     (pred[0, :, :, 0], pred[0, :, :, 1], pred[0, :, :, 2], pred[0, :, :, 3]))
-        prevFrame = rescaled
-        # cv2.imshow('filter', stack)
-
-    overlayFrame = np.copy(rescaled)
+    overlayFrame = np.copy(frame)
 
     if roiX != None and roiY != None:
         cv2.rectangle(overlayFrame, (roiX, roiY), (roiX + roiSize,
@@ -94,14 +77,6 @@ while cap.isOpened():
 
     if key & 0xFF == ord(' '):
         paused = not paused
-        # roi = cv2.selectROI('frame', prevFrame,
-        #                     showCrosshair=False, fromCenter=False)
-        # if np.sum(roi) != 0:
-        #     print(roi)
-        #     cropped = prevFrame[roi[1]: roi[1] +
-        #                         roi[3], roi[0]: roi[0] + roi[2]]
-        #     print(cropped.shape)
-        #     cv2.imwrite("test.jpg", cropped)
 
     if paused:
         if key & 0xFF == ord('a'):
