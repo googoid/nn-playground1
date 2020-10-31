@@ -1,5 +1,6 @@
 *.log
 data/
+dataset/
 *.mp4
 *.MP4
 __pycache__/
